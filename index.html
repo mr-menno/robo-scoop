@@ -1,0 +1,1071 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Robo-Scoop 3000</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#eaf4ee; --panel:#ffffff; --ink:#1f2350; --muted:#5b6088; --line:#cfe2d7;
+  --accent:#ff4f8b; --accent-ink:#ffffff; --mint:#1fae8f;
+  --wall:#fdeef3; --wall-line:#f6dce6; --tile-a:#dff0e6; --tile-b:#c7e4d3;
+  --table:#c98b5a; --table-dark:#a56c40;
+  --robot:#e9ecf7; --robot-line:#1f2350;
+  --code-bg:#1c1f44; --code-ink:#eef0ff; --gutter:#7479a8; --hl:rgba(255,214,102,.26); --hl-err:rgba(255,79,139,.34);
+  --warn:#8a5a00; --warn-bg:#fff3d6; --err:#c21f55; --err-bg:#ffe4ee; --ok:#0f7a60; --ok-bg:#dcf5ec; --info:#5b6088;
+  --focus:#ff4f8b;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15172e; --panel:#1f2244; --ink:#eef0ff; --muted:#a7abd4; --line:#30346a;
+    --wall:#2a2547; --wall-line:#332d57; --tile-a:#1f3a33; --tile-b:#18302a;
+    --table:#9a6640; --table-dark:#7a4f30; --robot:#d7dbef; --robot-line:#141633;
+    --code-bg:#10122b; --warn:#ffd48a; --warn-bg:#3a2f14; --err:#ff8fb5; --err-bg:#3d1628; --ok:#7ce8c6; --ok-bg:#12382e; --info:#a7abd4;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15172e; --panel:#1f2244; --ink:#eef0ff; --muted:#a7abd4; --line:#30346a;
+  --wall:#2a2547; --wall-line:#332d57; --tile-a:#1f3a33; --tile-b:#18302a;
+  --table:#9a6640; --table-dark:#7a4f30; --robot:#d7dbef; --robot-line:#141633;
+  --code-bg:#10122b; --warn:#ffd48a; --warn-bg:#3a2f14; --err:#ff8fb5; --err-bg:#3d1628; --ok:#7ce8c6; --ok-bg:#12382e; --info:#a7abd4;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.5}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.app{max-width:1320px;margin:0 auto;padding:18px clamp(12px,3vw,28px) 48px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:16px}
+h1{font-family:Sniglet,"Atkinson Hyperlegible",system-ui,sans-serif;font-weight:800;font-size:clamp(1.8rem,4vw,2.8rem);line-height:1;margin:0;letter-spacing:-.01em}
+.tagline{margin:6px 0 0;color:var(--muted);max-width:52ch}
+.levels{display:flex;gap:8px;flex-wrap:wrap}
+.levels button{font-family:Sniglet,system-ui,sans-serif;font-size:1rem;border:2px solid var(--ink);background:transparent;border-radius:999px;padding:8px 16px;cursor:pointer}
+.levels button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--panel);border:2px solid var(--ink);border-radius:26px;overflow:hidden}
+.order{display:flex;gap:14px;align-items:center;padding:12px 18px;border-bottom:2px solid var(--ink)}
+.order-cones{font-size:1.7rem;line-height:1;flex:none}
+.order h2{font-family:Sniglet,system-ui,sans-serif;font-weight:800;font-size:1.25rem;margin:0}
+.order p{margin:2px 0 0;color:var(--muted);font-size:.95rem}
+.scene-wrap{position:relative;background:var(--wall);overflow:hidden}
+#scene{display:block;width:100%;height:auto}
+.bubble{position:absolute;left:14px;top:14px;max-width:min(58%,440px);background:#fff;color:#1f2350;border:3px solid #1f2350;border-radius:20px 20px 20px 6px;padding:10px 14px;font-weight:700;font-size:clamp(.92rem,1.7vw,1.12rem);line-height:1.35;box-shadow:5px 5px 0 #1f2350}
+.bubble.warn{border-color:#c98400;box-shadow:5px 5px 0 #c98400}
+.bubble.crash{border-color:#c21f55;box-shadow:5px 5px 0 #c21f55;color:#c21f55}
+.bubble.win{border-color:#0f7a60;box-shadow:5px 5px 0 #0f7a60;color:#0f7a60}
+.workbench{background:var(--panel);border:2px solid var(--ink);border-radius:18px;overflow:hidden}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-bottom:2px solid var(--ink)}
+.btn{font-family:Sniglet,system-ui,sans-serif;font-size:1.05rem;border:2px solid var(--ink);background:transparent;border-radius:12px;padding:7px 14px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.btn.run{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.speed{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.95rem}
+.speed input{width:90px;accent-color:var(--accent)}
+.editor{position:relative;display:flex;background:var(--code-bg);height:340px}
+@media (max-width:920px){.editor{height:280px}}
+.gutter{width:46px;flex:none;overflow:hidden;padding:12px 0 40px;text-align:right;color:var(--gutter);font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:16px;line-height:24px;user-select:none}
+.gutter div{padding-right:10px}
+.codebox{position:relative;flex:1;min-width:0}
+.hl{position:absolute;left:0;right:0;height:24px;background:var(--hl);display:none;pointer-events:none;z-index:0;border-left:4px solid #ffd166}
+.hl.err{background:var(--hl-err);border-left-color:#ff4f8b}
+#code{position:absolute;inset:0;z-index:1;width:100%;height:100%;resize:none;border:0;outline:none;background:transparent;color:var(--code-ink);font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:16px;line-height:24px;padding:12px 12px 12px 10px;white-space:pre;overflow:auto;tab-size:2;caret-color:#ffd166}
+#code:focus-visible{outline:none;box-shadow:inset 0 0 0 3px var(--focus)}
+.log{height:210px;overflow:auto;padding:8px 10px;font-size:.95rem;border-top:2px solid var(--ink)}
+.log .e{padding:5px 8px;border-radius:8px;margin:3px 0;display:flex;gap:10px;align-items:baseline}
+.log .ln{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.82rem;color:var(--muted);flex:none;min-width:2.8em}
+.log .info{color:var(--info)}
+.log .warn{background:var(--warn-bg);color:var(--warn)}
+.log .crash{background:var(--err-bg);color:var(--err);font-weight:700}
+.log .win{background:var(--ok-bg);color:var(--ok);font-weight:700}
+.docs{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;margin-top:18px;align-items:start}
+@media (max-width:920px){.docs{grid-template-columns:minmax(0,1fr)}}
+details{background:var(--panel);border:2px solid var(--ink);border-radius:18px;padding:0 18px}
+summary{font-family:Sniglet,system-ui,sans-serif;font-weight:800;font-size:1.15rem;padding:14px 0;cursor:pointer}
+details[open] summary{border-bottom:2px dashed var(--line);margin-bottom:10px}
+.manual{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 26px;padding-bottom:14px}
+.manual h3{font-family:Sniglet,system-ui,sans-serif;font-weight:400;font-size:1.05rem;margin:10px 0 4px}
+.manual p,.manual ul{margin:0 0 6px;font-size:.95rem}
+.manual ul{padding-left:18px}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.88em}
+code{background:var(--bg);padding:1px 5px;border-radius:5px}
+pre{background:var(--code-bg);color:var(--code-ink);padding:12px 14px;border-radius:12px;overflow-x:auto;margin:6px 0 10px;line-height:1.5}
+.sol h3{font-family:Sniglet,system-ui,sans-serif;font-weight:400;font-size:1.05rem;margin:8px 0 2px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sol .btn{font-size:.9rem;padding:4px 10px}
+.sol p{font-size:.95rem;margin:4px 0 10px;color:var(--muted)}
+/* scene art */
+.wall-line{stroke:var(--wall-line);stroke-width:2}
+.tile-a{fill:var(--tile-a)} .tile-b{fill:var(--tile-b)}
+.table-top{fill:var(--table)} .table-front,.table-leg{fill:var(--table-dark)}
+.table-label{font:400 12px Sniglet,system-ui,sans-serif;fill:rgba(255,255,255,.85)}
+.robot-part{fill:var(--robot);stroke:var(--robot-line);stroke-width:3}
+.robot-screen{fill:#1b2044}
+.eye-dot{fill:#6ff0d6}
+.eye-line{stroke:#6ff0d6;stroke-width:4;fill:none;stroke-linecap:round}
+.eye-x{stroke:#ff5d8f;stroke-width:4;fill:none;stroke-linecap:round}
+.antenna{stroke:var(--robot-line);stroke-width:4}
+.antenna-tip{fill:#ff4f8b}
+.robot-name{font:400 14px Sniglet,system-ui,sans-serif;fill:var(--robot-line)}
+.arm{stroke:var(--robot-line);stroke-width:13;stroke-linecap:round}
+.arm-in{stroke:var(--robot);stroke-width:6;stroke-linecap:round}
+.claw{fill:var(--robot);stroke:var(--robot-line);stroke-width:3}
+.claw-finger{stroke:var(--robot-line);stroke-width:5;fill:none;stroke-linecap:round}
+.claw-label{font:400 13px Sniglet,system-ui,sans-serif;fill:var(--robot-line)}
+.cone{fill:#e3a760;stroke:#a86a2c;stroke-width:2;stroke-linejoin:round}
+.cone-lines{stroke:#b57533;stroke-width:1.6;fill:none}
+.cone-rim{fill:#d6914a;stroke:#a86a2c;stroke-width:2}
+.ball{stroke:rgba(40,20,20,.22);stroke-width:2}
+.shine{fill:#fff;opacity:.55}
+.tub{fill:#f5f3ff;stroke:#6d62a8;stroke-width:3;stroke-linejoin:round}
+.tub-band{fill:#ff4f8b}
+.tub-label{font:400 13px Sniglet,system-ui,sans-serif;fill:#fff}
+.tub-cream{fill:#fbeebc;stroke:#e3c878;stroke-width:2}
+.frost-box{fill:#e2f4ff;stroke:#5aa9dd;stroke-width:1.5}
+.frost-text{font:700 10.5px "Atkinson Hyperlegible",system-ui,sans-serif;fill:#1f6aa5}
+.lid{fill:#6d62a8;stroke:#4f4585;stroke-width:2}
+.scoop-handle{fill:#ff4f8b;stroke:#b8325f;stroke-width:2}
+.metal{fill:#d3d9e3;stroke:#7f8ba0;stroke-width:2}
+.heat{stroke:#ff8a4c;stroke-width:2.4;fill:none;stroke-linecap:round}
+.bowl{fill:#8fcaf2;stroke:#3f7fb0;stroke-width:2.5}
+.water{fill:#d4ecff;stroke:#3f7fb0;stroke-width:1.5}
+.steam{stroke:#9aa3c7;stroke-width:2;fill:none;stroke-linecap:round;opacity:.8}
+.cust-body{fill:#5b7fe8} .cust-leg{fill:#2f3f86}
+.cust-head{fill:#ffd6ad;stroke:#c9956a;stroke-width:2}
+.cust-hair{fill:#3b2a22}
+.cust-eye{fill:#1f2350}
+.mouth{stroke:#1f2350;stroke-width:2.6;fill:none;stroke-linecap:round}
+.cust-name{font:400 13px Sniglet,system-ui,sans-serif;fill:var(--muted)}
+.splat{stroke:rgba(40,20,20,.18);stroke-width:1.5}
+#robot{transform-box:fill-box;transform-origin:50% 100%}
+#robot.dance{animation:wiggle .28s ease-in-out 4}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+.confetti{position:absolute;top:-16px;width:10px;height:15px;border-radius:3px;pointer-events:none;animation:fall 1.9s ease-in forwards}
+@keyframes fall{to{transform:translateY(var(--dy)) rotate(620deg);opacity:.2}}
+@media (prefers-reduced-motion: reduce){#robot.dance{animation:none}.confetti{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Robo-Scoop 3000</h1>
+      <p class="tagline">Write the program, one step per line. The robot does exactly what you say, nothing more.</p>
+    </div>
+    <nav class="levels" aria-label="Challenge level">
+      <button data-level="0" aria-pressed="true">Level 1</button>
+      <button data-level="1" aria-pressed="false">Level 2</button>
+      <button data-level="2" aria-pressed="false">Level 3</button>
+    </nav>
+  </header>
+
+  <main class="grid">
+    <section class="stage" aria-label="Robot kitchen">
+      <div class="order">
+        <div class="order-cones" id="orderCones" aria-hidden="true">🍦</div>
+        <div><h2 id="goalTitle">One scoop, please</h2><p id="goalDesc"></p></div>
+      </div>
+      <div class="scene-wrap" id="sceneWrap">
+        <div class="bubble" id="bubble" aria-live="polite"></div>
+        <svg id="scene" viewBox="0 0 800 500" role="img" aria-label="A robot behind a kitchen table with a cone, a tub of ice cream, a scoop and a bowl of warm water. A customer waits on the right.">
+          <defs>
+            <pattern id="tiles" width="40" height="40" patternUnits="userSpaceOnUse">
+              <rect class="tile-a" width="40" height="40"/><rect class="tile-b" width="20" height="20"/><rect class="tile-b" x="20" y="20" width="20" height="20"/>
+            </pattern>
+            <clipPath id="coneClip"><path d="M-22 -35 L22 -35 L0 35 Z"/></clipPath>
+          </defs>
+          <g aria-hidden="true">
+            <line class="wall-line" x1="0" y1="120" x2="800" y2="120"/><line class="wall-line" x1="0" y1="240" x2="800" y2="240"/>
+            <rect x="0" y="430" width="800" height="70" fill="url(#tiles)"/>
+            <rect class="table-top" x="40" y="330" width="660" height="16" rx="5"/>
+            <rect class="table-front" x="52" y="346" width="636" height="32"/>
+            <rect class="table-leg" x="82" y="378" width="16" height="54"/>
+            <rect class="table-leg" x="642" y="378" width="16" height="54"/>
+            <text class="table-label" x="120" y="367" text-anchor="middle">Cone</text>
+            <text class="table-label" x="360" y="367" text-anchor="middle">Ice cream</text>
+            <text class="table-label" x="500" y="367" text-anchor="middle">Scoop</text>
+            <text class="table-label" x="630" y="367" text-anchor="middle">Warm water</text>
+            <g id="customer">
+              <rect class="cust-leg" x="738" y="370" width="12" height="62" rx="5"/>
+              <rect class="cust-leg" x="756" y="370" width="12" height="62" rx="5"/>
+              <rect class="cust-body" x="726" y="222" width="54" height="156" rx="24"/>
+              <circle class="cust-head" cx="753" cy="194" r="25"/>
+              <path class="cust-hair" d="M729 188 Q733 164 755 166 Q777 166 778 188 Q766 176 752 178 Q738 178 729 188Z"/>
+              <circle class="cust-eye" cx="745" cy="194" r="2.8"/><circle class="cust-eye" cx="761" cy="194" r="2.8"/>
+              <path id="custMouth" class="mouth" d="M745 206 L761 206"/>
+              <text class="cust-name" x="753" y="156" text-anchor="middle">Customer</text>
+            </g>
+            <g id="robot">
+              <line class="antenna" x1="400" y1="10" x2="400" y2="26"/><circle class="antenna-tip" cx="400" cy="9" r="6"/>
+              <rect class="robot-part" x="348" y="26" width="104" height="58" rx="15"/>
+              <rect class="robot-screen" x="360" y="36" width="80" height="38" rx="10"/>
+              <g id="eyesNormal"><circle class="eye-dot" cx="385" cy="55" r="6"/><circle class="eye-dot" cx="415" cy="55" r="6"/></g>
+              <g id="eyesHappy" style="display:none"><path class="eye-line" d="M378 58 Q385 47 392 58"/><path class="eye-line" d="M408 58 Q415 47 422 58"/></g>
+              <g id="eyesCrash" style="display:none"><path class="eye-x" d="M379 49 L391 61 M391 49 L379 61"/><path class="eye-x" d="M409 49 L421 61 M421 49 L409 61"/></g>
+              <rect class="robot-part" x="334" y="88" width="132" height="66" rx="18"/>
+              <text class="robot-name" x="400" y="126" text-anchor="middle">RS-3000</text>
+            </g>
+          </g>
+          <g id="splats"></g>
+          <g id="o-water">
+            <path class="steam" d="M-16 -20 q-6 -7 0 -14 q6 -7 0 -14 M4 -22 q-6 -7 0 -14 q6 -7 0 -14 M22 -20 q-5 -6 0 -12"/>
+            <path class="bowl" d="M-46 -10 L46 -10 Q43 18 0 20 Q-43 18 -46 -10 Z"/>
+            <ellipse class="water" cx="0" cy="-10" rx="45" ry="6"/>
+          </g>
+          <g id="o-tub">
+            <path class="tub" d="M-55 -32 L55 -32 L48 32 L-48 32 Z"/>
+            <rect class="tub-band" x="-52" y="-11" width="104" height="24"/>
+            <text class="tub-label" x="0" y="6" text-anchor="middle">Ice cream</text>
+            <ellipse id="tubCream" class="tub-cream" cx="0" cy="-32" rx="53" ry="7" style="display:none"/>
+            <g id="tubFrost" style="display:none"><rect class="frost-box" x="-30" y="15" width="60" height="14" rx="7"/><text class="frost-text" x="0" y="26" text-anchor="middle">❄ frozen</text></g>
+          </g>
+          <g id="o-lid">
+            <rect class="lid" x="-60" y="-6" width="120" height="12" rx="5"/>
+            <rect class="lid" x="-14" y="-11" width="28" height="7" rx="3"/>
+          </g>
+          <g id="o-cone">
+            <g id="coneScoops"></g>
+            <g id="coneWhole">
+              <path class="cone" d="M-22 -35 L22 -35 L0 35 Z"/>
+              <path class="cone-lines" clip-path="url(#coneClip)" d="M-14 -35 L12 22 M-3 -35 L18 10 M8 -35 L24 -2 M14 -35 L-12 22 M3 -35 L-18 10 M-8 -35 L-24 -2"/>
+              <rect class="cone-rim" x="-24" y="-40" width="48" height="9" rx="4"/>
+            </g>
+            <g id="coneBroken" style="display:none">
+              <path class="cone" d="M-26 30 L-9 12 L-3 34 Z"/><path class="cone" d="M3 34 L11 10 L27 33 Z"/><path class="cone" d="M-9 34 L0 20 L7 34 Z"/>
+            </g>
+          </g>
+          <g id="o-scoop">
+            <rect class="scoop-handle" x="-6.5" y="-46" width="13" height="42" rx="6.5"/>
+            <rect class="metal" x="-3" y="-6" width="6" height="11"/>
+            <g id="scoopBall" style="display:none"><circle class="ball" cx="0" cy="12" r="15"/><circle class="shine" cx="-5" cy="6" r="4"/></g>
+            <path class="metal" d="M-17 16 A17 17 0 0 0 17 16 Z"/>
+            <g id="scoopHeat" style="display:none"><path class="heat" d="M-24 20 q-5 -6 0 -12 q5 -6 0 -12 M24 20 q-5 -6 0 -12 q5 -6 0 -12"/></g>
+          </g>
+          <g id="balls"></g>
+          <line id="armL" class="arm"/><line id="armLi" class="arm-in"/>
+          <line id="armR" class="arm"/><line id="armRi" class="arm-in"/>
+          <g id="handL"><rect class="claw" x="-17" y="-13" width="34" height="20" rx="8"/><path class="claw-finger" d="M-13 6 L-17 21 M13 6 L17 21"/><text class="claw-label" y="2" text-anchor="middle">L</text></g>
+          <g id="handR"><rect class="claw" x="-17" y="-13" width="34" height="20" rx="8"/><path class="claw-finger" d="M-13 6 L-17 21 M13 6 L17 21"/><text class="claw-label" y="2" text-anchor="middle">R</text></g>
+        </svg>
+      </div>
+    </section>
+
+    <section class="workbench" aria-label="Program editor">
+      <div class="toolbar">
+        <button class="btn run" id="runBtn" title="Run (Ctrl+Enter)">▶ Run</button>
+        <button class="btn" id="stepBtn" title="Run one line at a time">Step</button>
+        <button class="btn" id="stopBtn" disabled>Stop</button>
+        <button class="btn" id="resetBtn">Reset kitchen</button>
+        <label class="speed">Speed <input type="range" id="speed" min="0.5" max="3" step="0.25" value="1"><span id="speedVal">1×</span></label>
+      </div>
+      <div class="editor">
+        <div class="gutter" id="gutter" aria-hidden="true"></div>
+        <div class="codebox"><div class="hl" id="hl"></div><textarea id="code" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" aria-label="Robot program, one instruction per line"></textarea></div>
+      </div>
+      <div class="log" id="log" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <section class="docs">
+    <details open>
+      <summary>Robot manual</summary>
+      <div class="manual">
+        <div>
+          <h3>Things I know</h3>
+          <ul>
+            <li><b>cone</b></li>
+            <li><b>ice cream</b>, which to me means the whole tub with “Ice cream” printed on it</li>
+            <li><b>lid</b> (it starts on the tub)</li>
+            <li><b>scoop</b>, the metal tool</li>
+            <li><b>water</b>, the bowl of warm water</li>
+            <li><b>customer</b></li>
+          </ul>
+          <h3>My hands</h3>
+          <p>I have a <b>left</b> and a <b>right</b> hand, and each holds one thing. Tell me which hand when you pick something up.</p>
+        </div>
+        <div>
+          <h3>Words I understand</h3>
+          <ul>
+            <li>pick up … with your left/right hand</li>
+            <li>put … down, drop …</li>
+            <li>remove the lid, put the lid on</li>
+            <li>flip the cone</li>
+            <li>dip … in the water</li>
+            <li>scoop the ice cream</li>
+            <li>empty … onto …, put … on …</li>
+            <li>give … to the customer</li>
+            <li>say …, wait, dance</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Loops</h3>
+<pre>repeat 2 times
+  (steps to repeat)
+end</pre>
+          <h3>Decisions</h3>
+<pre>if ice cream is hard
+  (steps)
+else
+  (other steps)
+end</pre>
+          <p>I can check: ice cream is hard or soft, cone is upside down or upright, scoop is empty or full, lid is on or off.</p>
+          <p>Lines starting with <code>#</code> are notes I skip. Every run starts with a fresh kitchen.</p>
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary>Teacher: sample solutions</summary>
+      <div class="sol" id="solutions"></div>
+    </details>
+  </section>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const HOME = {cone:120, lid:235, tub:360, scoop:500, water:630};
+  const TABLE_Y = {cone:291, lid:324, tub:298, scoop:313, water:310};
+  const FLOOR_Y = {cone:452, tub:448, lid:474, scoop:470, water:460};
+  const HOLD = {cone:32, scoop:38, tub:40, lid:4};
+  const GRAB = {cone:28, tub:40, lid:6, scoop:14};
+  const REST = {left:{x:262,y:205}, right:{x:538,y:205}};
+  const SHOULDER = {left:{x:344,y:112}, right:{x:456,y:112}};
+  const CUST_HAND = {x:703, y:230};
+  const OBJS = ['water','tub','lid','cone','scoop'];
+  const HANDS = ['left','right'];
+  const FLAVORS = ['#f59ab5','#fbeebc','#9fe3c8','#8a5a3b'];
+  const LABEL = {tub:'the ice cream tub', cone:'the cone', lid:'the lid', scoop:'the scoop', water:'the water bowl', table:'the table', customer:'the customer'};
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const MAX_STEPS = 300;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const LEVELS = [
+    {goal:1, hardness:'soft', title:'One scoop, please',
+     desc:'Serve the customer a cone with one scoop. The ice cream is nice and soft.'},
+    {goal:2, hardness:'hard', title:'Two scoops, please',
+     desc:'The ice cream is frozen rock-hard. A warm scoop slides right in, but it cools off after every scoop. Try a repeat loop.'},
+    {goal:3, hardness:'random', title:'Three scoops, please',
+     desc:'This freezer is unpredictable: after every scoop, the ice cream might be hard or soft. Use an if to check.'}
+  ];
+  const SOLUTIONS = [
+`pick up the scoop with your right hand
+remove the lid with your left hand
+put the lid down
+scoop the ice cream
+pick up the cone with your left hand
+flip the cone
+empty the scoop onto the cone
+give the cone to the customer`,
+`pick up the scoop with your right hand
+remove the lid with your left hand
+put the lid down
+pick up the cone with your left hand
+flip the cone
+repeat 2 times
+  dip the scoop in the water
+  scoop the ice cream
+  empty the scoop onto the cone
+end
+give the cone to the customer`,
+`pick up the scoop with your right hand
+remove the lid with your left hand
+put the lid down
+pick up the cone with your left hand
+flip the cone
+repeat 3 times
+  if ice cream is hard
+    dip the scoop in the water
+  end
+  scoop the ice cream
+  empty the scoop onto the cone
+end
+give the cone to the customer`];
+  const STARTER = `# One instruction per line, then press Run.
+# Lines starting with # are notes the robot skips.
+
+pick up the cone
+`;
+
+  // ---------- elements ----------
+  const objEls = {water:$('#o-water'), tub:$('#o-tub'), lid:$('#o-lid'), cone:$('#o-cone'), scoop:$('#o-scoop')};
+  const handEls = {left:$('#handL'), right:$('#handR')};
+  const armEls = {left:[$('#armL'),$('#armLi')], right:[$('#armR'),$('#armRi')]};
+  const ballsEl = $('#balls'), splatsEl = $('#splats');
+  const bubble = $('#bubble'), logEl = $('#log');
+  const code = $('#code'), gutter = $('#gutter'), hl = $('#hl');
+  const runBtn = $('#runBtn'), stepBtn = $('#stepBtn'), stopBtn = $('#stopBtn'), resetBtn = $('#resetBtn');
+  const robotEl = $('#robot');
+
+  // ---------- state ----------
+  let level = LEVELS[0];
+  let speed = 1;
+  let W, cur = {}, handCur = {}, handTgt = {}, fallingBalls = [];
+  let flavorIdx = 0, coneKey = '', splatKey = -1;
+  let running = false, abortFlag = false, stepMode = false, stepsAllowed = 0, stepWaiter = null;
+  let execCount = 0, usedRepeat = false, usedIf = false, curLine = null, hlLine = null;
+  const ABORT = {abort:true};
+  class Crash extends Error { constructor(m){ super(m); this.crash = true; } }
+
+  function freshWorld(){
+    flavorIdx = 0;
+    return {
+      hands:{left:null, right:null},
+      cone:{loc:'table', rot:180, broken:false, scoops:[]},
+      tub:{loc:'table', hard: level.hardness==='hard' ? true : level.hardness==='random' ? Math.random()<0.5 : false},
+      lid:{loc:'tub'},
+      scoop:{loc:'table', full:null, warm:false},
+      water:{loc:'table'},
+      splats:[], floorX:{}, floorRot:{},
+      finished:false, mood:'normal', cust:'neutral'
+    };
+  }
+
+  function target(n){
+    const o = W[n];
+    const rot = n==='cone' ? o.rot : 0;
+    switch(o.loc){
+      case 'table': return {x:HOME[n], y:TABLE_Y[n], r: n==='scoop' ? 90 : rot};
+      case 'left': case 'right': { const h = handCur[o.loc]; return {x:h.x, y:h.y+HOLD[n], r:rot}; }
+      case 'tub': { const t = cur.tub; return {x:t.x, y:t.y-38, r:t.r}; }
+      case 'floor': return {x:W.floorX[n], y:FLOOR_Y[n], r:W.floorRot[n]};
+      case 'customer': return {x:CUST_HAND.x, y:CUST_HAND.y+HOLD.cone, r:rot};
+    }
+  }
+
+  function snapAll(){
+    HANDS.forEach(h => { handCur[h] = {...REST[h]}; handTgt[h] = {...REST[h]}; });
+    OBJS.forEach(n => { cur[n] = {...target(n)}; });
+  }
+
+  // ---------- drawing ----------
+  function refresh(){
+    $('#coneWhole').style.display = W.cone.broken ? 'none' : '';
+    $('#coneBroken').style.display = W.cone.broken ? '' : 'none';
+    const key = W.cone.broken ? 'b' : W.cone.scoops.join(',');
+    if(key !== coneKey){
+      coneKey = key;
+      $('#coneScoops').innerHTML = W.cone.broken ? '' : W.cone.scoops.map((c,i) => {
+        const x = i%2 ? 2 : -2, y = -52 - i*25;
+        return `<circle class="ball" cx="${x}" cy="${y}" r="18" style="fill:${c}"/><circle class="shine" cx="${x-6}" cy="${y-6}" r="4.5"/>`;
+      }).join('');
+    }
+    $('#tubCream').style.display = W.lid.loc==='tub' || W.tub.loc==='floor' ? 'none' : '';
+    $('#tubFrost').style.display = W.tub.hard ? '' : 'none';
+    const sb = $('#scoopBall');
+    sb.style.display = W.scoop.full ? '' : 'none';
+    if(W.scoop.full) sb.firstElementChild.style.fill = W.scoop.full;
+    $('#scoopHeat').style.display = W.scoop.warm ? '' : 'none';
+    $('#custMouth').setAttribute('d', {neutral:'M745 206 L761 206', happy:'M743 203 Q753 214 763 203', sad:'M744 210 Q753 201 762 210'}[W.cust]);
+    $('#eyesNormal').style.display = W.mood==='normal' ? '' : 'none';
+    $('#eyesHappy').style.display = W.mood==='happy' ? '' : 'none';
+    $('#eyesCrash').style.display = W.mood==='crash' ? '' : 'none';
+    renderSplats();
+  }
+  function renderSplats(){
+    if(W.splats.length === splatKey) return;
+    splatKey = W.splats.length;
+    splatsEl.innerHTML = W.splats.map(s => `<g transform="translate(${s.x.toFixed(0)} 463)"><ellipse class="splat" rx="23" ry="7" style="fill:${s.c}"/><circle cx="-28" cy="-2" r="3.5" style="fill:${s.c}"/><circle cx="27" cy="1" r="2.6" style="fill:${s.c}"/></g>`).join('');
+  }
+
+  let last = performance.now();
+  function frame(now){
+    const dt = Math.min(48, now - last); last = now;
+    const k = 1 - Math.exp(-dt * 0.013 * speed);
+    HANDS.forEach(h => {
+      const c = handCur[h], t = handTgt[h];
+      c.x += (t.x - c.x) * k; c.y += (t.y - c.y) * k;
+      handEls[h].setAttribute('transform', `translate(${c.x.toFixed(1)} ${c.y.toFixed(1)})`);
+      armEls[h].forEach(a => { a.setAttribute('x1', SHOULDER[h].x); a.setAttribute('y1', SHOULDER[h].y); a.setAttribute('x2', c.x.toFixed(1)); a.setAttribute('y2', (c.y-6).toFixed(1)); });
+    });
+    OBJS.forEach(n => {
+      const t = target(n), c = cur[n], loc = W[n].loc;
+      const kk = (loc==='left' || loc==='right' || loc==='tub') ? Math.min(1, k*2.6) : k;
+      c.x += (t.x - c.x) * kk; c.y += (t.y - c.y) * kk; c.r += (t.r - c.r) * kk;
+      objEls[n].setAttribute('transform', `translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) rotate(${c.r.toFixed(1)})`);
+    });
+    if(fallingBalls.length){
+      const s = dt/1000*speed;
+      fallingBalls.forEach(b => {
+        b.vy += 1500*s; b.x += b.vx*s; b.y += b.vy*s;
+        if(b.y >= 458){ b.dead = true; W.splats.push({x:b.x, c:b.c}); }
+      });
+      fallingBalls = fallingBalls.filter(b => !b.dead);
+      ballsEl.innerHTML = fallingBalls.map(b => `<circle class="ball" cx="${b.x.toFixed(1)}" cy="${b.y.toFixed(1)}" r="16" style="fill:${b.c}"/>`).join('');
+      renderSplats();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function dropBall(x, y, c, vx){ fallingBalls.push({x, y, vx: vx ?? (Math.random()-.5)*90, vy:-140, c}); }
+  function spillCone(){
+    const c = cur.cone;
+    W.cone.scoops.forEach((col,i) => dropBall(c.x + (i%2?2:-2), c.y - 52 - i*25, col));
+    W.cone.scoops = [];
+  }
+
+  // ---------- messages ----------
+  function say(msg, kind='ok'){ bubble.textContent = msg; bubble.className = 'bubble ' + (kind==='ok'||kind==='info' ? '' : kind); }
+  function logLine(line, msg, kind='ok'){
+    const d = document.createElement('div');
+    d.className = 'e ' + kind;
+    const ln = document.createElement('span'); ln.className = 'ln'; ln.textContent = line ? 'Line ' + line : '';
+    const tx = document.createElement('span'); tx.textContent = msg;
+    d.append(ln, tx); logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+  }
+  const okMsg = m => { logLine(curLine, m, 'ok'); say(m, 'ok'); };
+  const mishap = m => { logLine(curLine, m, 'warn'); say(m, 'warn'); };
+
+  // ---------- timing & stepping ----------
+  async function sleep(ms){
+    const end = performance.now() + ms/speed;
+    while(performance.now() < end){
+      if(abortFlag) throw ABORT;
+      await new Promise(r => setTimeout(r, 16));
+    }
+  }
+  async function gate(){
+    if(abortFlag) throw ABORT;
+    if(stepMode){
+      while(stepMode && stepsAllowed <= 0){
+        await new Promise(r => stepWaiter = r);
+        if(abortFlag) throw ABORT;
+      }
+      if(stepMode) stepsAllowed--;
+    }
+  }
+  function releaseStep(){ if(stepWaiter){ const r = stepWaiter; stepWaiter = null; r(); } }
+
+  // ---------- robot actions ----------
+  const holder = n => W.hands.left===n ? 'left' : W.hands.right===n ? 'right' : null;
+  async function reach(h, x, y, ms=430){ handTgt[h] = {x, y}; await sleep(ms); }
+  async function retract(h, ms=360){ handTgt[h] = {...REST[h]}; await sleep(ms); }
+  function needHand(hand, example){
+    if(!hand) throw new Crash(`Which hand? I have a left hand and a right hand. Try “${example} with your left hand”.`);
+    if(hand==='both') throw new Crash('I can only use one hand at a time for that.');
+  }
+  function coneReachable(){
+    if(W.cone.loc==='floor') throw new Crash('The cone is on the floor. I can’t reach the floor!');
+    if(W.cone.loc==='customer') throw new Crash('The customer already has the cone.');
+  }
+
+  const A = {
+    async pickup({obj, hand}){
+      if(obj==='water') throw new Crash('The water bowl is bolted to the table. I can’t pick it up.');
+      needHand(hand, 'pick up ' + (obj==='tub' ? 'the ice cream' : 'the ' + obj));
+      const o = W[obj], h2 = holder(obj);
+      if(h2===hand) throw new Crash(`I’m already holding ${LABEL[obj]} in my ${hand} hand.`);
+      if(h2) throw new Crash(`${cap(LABEL[obj])} is already in my ${h2} hand.`);
+      if(W.hands[hand]) throw new Crash(`My ${hand} hand is already holding ${LABEL[W.hands[hand]]}. It can only hold one thing.`);
+      if(o.loc==='floor') throw new Crash(`${cap(LABEL[obj])} is on the floor. I can’t reach the floor!`);
+      if(o.loc==='customer') throw new Crash('The customer already has the cone.');
+      if(obj==='lid' && o.loc==='tub') return A.open({hand});
+      const c = cur[obj];
+      await reach(hand, c.x, c.y - GRAB[obj]);
+      o.loc = hand; W.hands[hand] = obj; refresh();
+      await retract(hand);
+      okMsg(`Picked up ${LABEL[obj]} with my ${hand} hand.`);
+    },
+    async putdown({obj, hand}){
+      if(!obj && hand && hand!=='both') obj = W.hands[hand];
+      if(!obj) throw new Crash('Put down what? Name the object, or say which hand.');
+      if(obj==='water') throw new Crash('I’m not holding the water bowl.');
+      const h = holder(obj);
+      if(!h) throw new Crash(`I’m not holding ${LABEL[obj]}.`);
+      await reach(h, HOME[obj], TABLE_Y[obj] - HOLD[obj] - 4);
+      W[obj].loc = 'table'; W.hands[h] = null;
+      let rolled = false;
+      if(obj==='scoop' && W.scoop.full){ dropBall(HOME.scoop - 18, TABLE_Y.scoop - 10, W.scoop.full, -70); W.scoop.full = null; rolled = true; }
+      refresh(); await retract(h);
+      if(rolled) mishap('I laid the scoop down on its side and the ice cream rolled off onto the floor.');
+      else okMsg(`Put ${LABEL[obj]} down on the table.`);
+    },
+    async drop({obj, hand}){
+      if(!obj && hand && hand!=='both') obj = W.hands[hand];
+      if(!obj) throw new Crash('Drop what? Name the object.');
+      const h = holder(obj);
+      if(!h) throw new Crash(`I’m not holding ${LABEL[obj]}, so I can’t drop it.`);
+      W.hands[h] = null; W[obj].loc = 'floor';
+      W.floorX[obj] = cur[obj].x + (Math.random()-.5)*30; W.floorRot[obj] = (Math.random()-.5)*110;
+      if(obj==='cone'){ spillCone(); W.cone.broken = true; mishap('CRACK! I let go of the cone and it smashed on the floor.'); }
+      else if(obj==='tub'){
+        if(W.lid.loc==='tub'){ W.lid.loc='floor'; W.floorX.lid = cur.tub.x + 60; W.floorRot.lid = 18; }
+        W.floorRot.tub = 78;
+        W.splats.push({x:cur.tub.x-34, c:FLAVORS[1]}, {x:cur.tub.x+8, c:FLAVORS[0]});
+        mishap('SPLAT! The whole tub of ice cream hit the floor.');
+      }
+      else if(obj==='scoop'){
+        if(W.scoop.full){ dropBall(cur.scoop.x, cur.scoop.y+12, W.scoop.full); W.scoop.full = null; }
+        mishap('CLANG! The scoop fell on the floor. I can’t reach it now.');
+      }
+      else mishap('The lid clattered onto the floor.');
+      refresh(); await sleep(650);
+    },
+    async open({hand}){
+      if(W.tub.loc==='floor') throw new Crash('The tub is on the floor.');
+      if(W.lid.loc!=='tub') throw new Crash('The lid is already off.');
+      needHand(hand, 'remove the lid');
+      if(W.hands[hand]) throw new Crash(`My ${hand} hand is holding ${LABEL[W.hands[hand]]}. I need an empty hand to take the lid off.`);
+      const c = cur.lid;
+      await reach(hand, c.x, c.y - HOLD.lid);
+      W.lid.loc = hand; W.hands[hand] = 'lid'; refresh();
+      await retract(hand);
+      okMsg(`Took the lid off with my ${hand} hand. I’m still holding the lid.`);
+    },
+    async close(){
+      const h = holder('lid');
+      if(!h){
+        if(W.lid.loc==='tub') throw new Crash('The lid is already on.');
+        throw new Crash('I need to be holding the lid to put it on.');
+      }
+      if(W.tub.loc==='floor') throw new Crash('The tub is on the floor.');
+      const t = cur.tub;
+      await reach(h, t.x, t.y - 38 - HOLD.lid);
+      W.lid.loc = 'tub'; W.hands[h] = null; refresh();
+      await retract(h);
+      okMsg('Put the lid back on the tub.');
+    },
+    async flip({mode}){
+      const h = holder('cone');
+      if(!h){
+        if(W.cone.loc==='table') throw new Crash('I can only flip the cone while I’m holding it.');
+        coneReachable();
+      }
+      if(W.cone.broken) throw new Crash('The cone is broken. Flipping won’t fix it!');
+      const was = W.cone.rot;
+      const next = mode==='up' ? 0 : mode==='down' ? 180 : (was===0 ? 180 : 0);
+      if(next===was){
+        okMsg(next===0 ? 'The cone’s open end is already up.' : 'The cone is already upside down.');
+        await sleep(350); return;
+      }
+      W.cone.rot = next;
+      await sleep(260);
+      if(next===180 && W.cone.scoops.length){ spillCone(); refresh(); await sleep(250); mishap('I flipped the cone upside down and the ice cream fell out!'); return; }
+      await sleep(220);
+      okMsg(next===0 ? 'Flipped the cone. The open end is up now.' : 'Flipped the cone. The open end is down now.');
+    },
+    async dip(){
+      const h = holder('scoop');
+      if(!h) throw new Crash('I’m not holding the scoop.');
+      const w = cur.water;
+      await reach(h, w.x, w.y - HOLD.scoop - 26); await sleep(260);
+      const melted = !!W.scoop.full;
+      W.scoop.full = null; W.scoop.warm = true; refresh();
+      await retract(h);
+      if(melted) mishap('I dipped the scoop with ice cream still in it. The ice cream melted into the water. Gross!');
+      else okMsg('Dipped the scoop in warm water. The scoop is warm now.');
+    },
+    async scoop(){
+      const h = holder('scoop');
+      if(!h) throw new Crash('I need to be holding the scoop to scoop.');
+      if(W.tub.loc==='floor') throw new Crash('The ice cream is on the floor!');
+      if(W.scoop.full) throw new Crash('The scoop is already full.');
+      const t = cur.tub;
+      if(W.lid.loc==='tub'){
+        await reach(h, t.x, t.y - 38 - HOLD.scoop - 34); await sleep(150);
+        throw new Crash('CLUNK! The scoop hit the lid. The tub is still closed.');
+      }
+      await reach(h, t.x, t.y - HOLD.scoop - 44); await sleep(220);
+      const wasHard = W.tub.hard;
+      if(wasHard && !W.scoop.warm){
+        await retract(h);
+        mishap('BOING! The scoop bounced off rock-hard ice cream. The scoop is still empty.');
+        reroll(); return;
+      }
+      W.scoop.full = FLAVORS[flavorIdx++ % FLAVORS.length]; W.scoop.warm = false; refresh();
+      await retract(h);
+      okMsg(wasHard ? 'The warm scoop slid right in. Got a scoop of ice cream!' : 'Got a scoop of ice cream!');
+      reroll();
+    },
+    async empty(){
+      const h = holder('scoop');
+      if(!h) throw new Crash('I’m not holding the scoop.');
+      coneReachable();
+      const c = W.cone, cc = cur.cone;
+      const top = cc.y - 40 - c.scoops.length*25;
+      await reach(h, cc.x, top - 82); await sleep(200);
+      if(!W.scoop.full){ await retract(h); mishap('I tapped the scoop over the cone… but the scoop was empty.'); return; }
+      const col = W.scoop.full; W.scoop.full = null; refresh();
+      if(c.broken){ dropBall(cc.x, top - 14, col); mishap('The ice cream fell straight through the broken cone. SPLAT.'); }
+      else if(c.rot===180){ dropBall(cc.x + 6, top - 14, col, 150); mishap('The ice cream bounced off the pointy end of the upside-down cone. SPLAT!'); }
+      else if(c.scoops.length >= 5){ c.scoops.push(col); spillCone(); mishap('The tower got too tall and toppled over!'); }
+      else { c.scoops.push(col); okMsg(`Plop! ${c.scoops.length===1 ? 'There is 1 scoop' : 'There are ' + c.scoops.length + ' scoops'} on the cone.`); }
+      refresh(); await retract(h);
+    },
+    async putOn({obj}){
+      if(obj==='water') throw new Crash('The water bowl is bolted to the table.');
+      const h = holder(obj);
+      if(!h){
+        if(obj==='tub') throw new Crash('I’m not holding “ice cream”. To me, “ice cream” means the tub with “Ice cream” printed on it.');
+        throw new Crash(`I’m not holding ${LABEL[obj]}.`);
+      }
+      coneReachable();
+      const c = W.cone, cc = cur.cone;
+      const top = cc.y - 40 - c.scoops.length*25;
+      await reach(h, cc.x, top - HOLD[obj] - ({tub:32, scoop:36, lid:6})[obj]); await sleep(220);
+      if(obj==='tub'){ spillCone(); c.broken = true; refresh(); mishap('CRUNCH! I put the ice cream (the whole tub!) on the cone. The cone is crushed.'); }
+      else if(obj==='scoop'){ spillCone(); c.broken = true; refresh(); mishap('I put the scoop (the metal tool!) on the cone. The cone cracked under it.'); }
+      else { W.hands[h] = null; W.lid.loc = 'floor'; W.floorX.lid = cc.x + 24; W.floorRot.lid = 14; refresh(); mishap('I put the lid on the cone like a tiny hat. It slid off onto the floor.'); }
+      await retract(h);
+    },
+    async serve({obj}){
+      if(obj==='tub') throw new Crash('The customer doesn’t want the whole tub… probably. What should I give them?');
+      if(obj==='scoop') throw new Crash('The customer ordered ice cream, not a kitchen tool.');
+      if(obj==='lid' || obj==='water') throw new Crash(`The customer doesn’t want ${LABEL[obj]}.`);
+      const h = holder('cone');
+      if(!h) throw new Crash('I have to be holding the cone to give it to the customer.');
+      await reach(h, CUST_HAND.x, CUST_HAND.y, 650);
+      W.cone.loc = 'customer'; W.hands[h] = null; refresh();
+      await retract(h, 420);
+      W.finished = true;
+      const n = W.cone.scoops.length, goal = level.goal;
+      if(W.cone.broken) return fail('The customer got a broken cone.');
+      if(W.cone.rot===180) return fail('The customer got an upside-down cone. They look very confused.');
+      if(n===0) return fail('The customer got an empty cone.');
+      if(n < goal) return fail(`Only ${n} scoop${n>1?'s':''}. The customer ordered ${goal}.`);
+      if(n > goal) return fail(`${n} scoops! The customer only ordered ${goal}.`);
+      win();
+    },
+    async say({text}){ say(text, 'ok'); logLine(curLine, `Said: “${text}”`, 'ok'); await sleep(1000); },
+    async wait(){ okMsg('Waiting…'); await sleep(900); },
+    async dance(){ robotEl.classList.add('dance'); okMsg('Beep boop, robot dance!'); await sleep(1200); robotEl.classList.remove('dance'); }
+  };
+  function reroll(){ if(level.hardness==='random'){ W.tub.hard = Math.random() < 0.5; refresh(); } }
+  function fail(msg){ W.cust = 'sad'; refresh(); logLine(curLine, 'Order failed: ' + msg, 'crash'); say(msg, 'crash'); }
+  function win(){
+    W.cust = 'happy'; W.mood = 'happy'; refresh();
+    const lines = code.value.split('\n').filter(l => l.replace(/(#|\/\/).*$/,'').trim()).length;
+    let extra = [];
+    if(usedRepeat) extra.push('used a loop');
+    if(usedIf) extra.push('used an if');
+    const msg = `Order complete! The customer is happy. ${lines} lines of code, ${execCount} steps run${extra.length ? ', ' + extra.join(' and ') : ''}.`;
+    logLine(curLine, msg, 'win'); say('Order complete! The customer is happy.', 'win');
+    confetti();
+  }
+  function confetti(){
+    if(reduceMotion) return;
+    const wrap = $('#sceneWrap'); const dy = wrap.clientHeight + 30 + 'px';
+    const cols = ['#ff4f8b','#fbeebc','#9fe3c8','#8a5a3b','#5b7fe8','#ffd166'];
+    for(let i=0;i<70;i++){
+      const s = document.createElement('span'); s.className = 'confetti';
+      s.style.left = Math.random()*100 + '%'; s.style.background = cols[i % cols.length];
+      s.style.setProperty('--dy', dy); s.style.animationDelay = (Math.random()*0.6) + 's';
+      wrap.appendChild(s); setTimeout(() => s.remove(), 2800);
+    }
+  }
+
+  // ---------- parser ----------
+  const NUMWORDS = {one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,once:1,twice:2,thrice:3};
+  const OBJ_WORDS = [['ice cream','tub'],['tub','tub'],['container','tub'],['carton','tub'],['box','tub'],['bucket','tub'],
+    ['cone','cone'],['lid','lid'],['scooper','scoop'],['scoop','scoop'],['spoon','scoop'],['water','water'],['bowl','water'],
+    ['customer','customer'],['person','customer'],['table','table'],['counter','table']];
+  function norm(s){
+    return (' ' + s.toLowerCase() + ' ').replace(/ice-cream|icecream/g,'ice cream')
+      .replace(/[^a-z0-9\s]/g,' ')
+      .replace(/\b(the|a|an|please|your|my|robot|then|now|carefully|gently|slowly|quickly|some)\b/g,' ')
+      .replace(/\s+/g,' ').trim();
+  }
+  function objsIn(s){
+    const found = [];
+    OBJ_WORDS.forEach(([w,o]) => { const re = new RegExp('\\b' + w + '\\b','g'); let m; while((m = re.exec(s))) found.push({o, i:m.index}); });
+    found.sort((a,b) => a.i - b.i);
+    const out = []; found.forEach(f => { if(!out.includes(f.o)) out.push(f.o); });
+    return out;
+  }
+  function parseCond(c){
+    const neg = /\b(not|isn t|isnt)\b/.test(c);
+    let f = null;
+    if(/(ice cream|tub)/.test(c) && /(hard|frozen|solid|rock)/.test(c)) f = () => W.tub.hard;
+    else if(/(ice cream|tub)/.test(c) && /(soft|melty|scoopable|creamy)/.test(c)) f = () => !W.tub.hard;
+    else if(/cone/.test(c) && /upside down/.test(c)) f = () => W.cone.rot===180;
+    else if(/cone/.test(c) && /(right side up|rightside up|upright)/.test(c)) f = () => W.cone.rot===0;
+    else if(/scoop/.test(c) && /empty/.test(c)) f = () => !W.scoop.full;
+    else if(/scoop/.test(c) && /full/.test(c)) f = () => !!W.scoop.full;
+    else if(/lid/.test(c) && /(\boff\b|open)/.test(c)) f = () => W.lid.loc!=='tub';
+    else if(/lid/.test(c) && /(\bon\b|closed)/.test(c)) f = () => W.lid.loc==='tub';
+    if(!f) return null;
+    return neg ? () => !f() : f;
+  }
+  function parseCommand(raw, s, line){
+    const U = msg => ({type:'unknown', line, raw, msg});
+    const C = (action, args={}) => ({type:'cmd', line, raw, action, args});
+    const sayM = raw.trim().match(/^say\s+(.+)$/i);
+    if(sayM) return C('say', {text: sayM[1].replace(/^["'“]|["'”]$/g,'')});
+    if(/^(dance|boogie|wave|celebrate)$/.test(s)) return C('dance');
+    if(/^(wait|pause)\b/.test(s)) return C('wait');
+    let hand = null;
+    const hm = s.match(/\b(left|right|both)\b/);
+    if(hm){ hand = hm[1]; s = s.replace(/\b(with|using|in|by|use)?\s*(left|right|both)\s*(hands?|claws?|arms?)?\b/,' ').replace(/\s+/g,' ').trim(); }
+    const objs = objsIn(s);
+    const things = objs.filter(o => o!=='table' && o!=='customer');
+    const first = things[0] || null;
+    const verb = s.split(' ')[0];
+    const has = o => objs.includes(o);
+    const pron = s.match(/\b(it|that|this|them|those|thing|stuff)\b/);
+    if(!things.length && pron) return U(`What is “${pron[1]}”? I don’t know what that means. Name the object.`);
+    const tooMany = () => U('That’s more than one thing in one line! Split it into separate steps.');
+
+    // dip
+    if(/\b(dip|dunk|soak|rinse|warm|heat|wet)\b/.test(s) && has('scoop')) return has('water') ? C('dip') : U('Dip the scoop into what? Tell me where.');
+    if(/^(put|place|stick|lower|insert)\b/.test(s) && has('scoop') && has('water')) return C('dip');
+    // serve
+    if(/^(give|serve|hand|deliver|offer|pass)\b/.test(s)){
+      if(!first) return U(has('customer') ? 'Give what to the customer? Name the object.' : 'Give what? Name the object.');
+      return C('serve', {obj:first});
+    }
+    // natural "put the scoop of ice cream on the cone"
+    if(has('cone') && (/\bscoop of ice cream\b/.test(s) || /\b(from|off|out of) scoop\b/.test(s)) && /^(put|place|drop|dump|add|plop|release|move|transfer)\b/.test(s)) return C('empty');
+    // scoop action
+    const scoopLike = /\bscoop of ice cream\b/.test(s) || verb==='scoop' ||
+      (/^(put|stick|push|dig|insert)\b/.test(s) && has('scoop') && has('tub') && /\b(in|into)\b/.test(s));
+    if(scoopLike){ if(has('cone')) return tooMany(); return C('scoop'); }
+    // empty
+    if(/^(empty|squeeze|dump|tap|shake|plop|unload|deposit|knock|scrape|tip|unscoop|flick|slide|transfer)\b/.test(s)){
+      if(first==='scoop' && has('cone')) return C('empty');
+      if(first==='scoop') return U('Empty the scoop where? Tell me the destination.');
+      if(first==='tub' && has('cone')) return C('putOn', {obj:'tub'});
+    }
+    // lid off
+    if((/^(open|unlid|uncover|unseal|unscrew)\b/.test(s) && (has('tub') || has('lid'))) ||
+       (has('lid') && /\b(remove|off|lift|pop|pull|take|unscrew)\b/.test(s) && !/\bon\b/.test(s))) return C('open', {hand});
+    if(/^open\b/.test(s)) return U(first ? `I don’t know how to open ${LABEL[first]}.` : 'Open what?');
+    // lid on
+    if(/^(close|cover|seal|reseal)\b/.test(s) || (/^(put|place|set|press|snap)\b/.test(s) && has('lid') && /\bon\b/.test(s) && !has('cone') && !has('table'))) return C('close');
+    // flip
+    if(/^(flip|turn|rotate|invert|spin|twist|reverse)\b/.test(s)){
+      if(first!=='cone') return U(first ? `I only know how to flip the cone, not ${LABEL[first]}.` : 'Flip what?');
+      const mode = /(right side up|rightside up|upright|open end up|open side up|point(y end)? (is )?down|tip (is )?down)/.test(s) ? 'up' : /upside down/.test(s) ? 'down' : 'toggle';
+      return C('flip', {mode});
+    }
+    // pick up
+    if(/^(pick|grab|take|lift|hold|get|grip|grasp|collect|carry)\b/.test(s)){
+      if(things.length > 1) return tooMany();
+      if(!first) return U(has('customer') ? 'I am NOT allowed to pick up customers.' : has('table') ? 'The table is way too heavy!' : 'Pick up what? Name the object.');
+      return C('pickup', {obj:first, hand});
+    }
+    // put down
+    if(/^(put|set|place|lay|leave|rest|lower)\b/.test(s) && (/\bdown\b/.test(s) || has('table'))){
+      if(things.length > 1) return tooMany();
+      return C('putdown', {obj:first, hand});
+    }
+    // put X on cone
+    if(/^(put|place|set|pour|stack|add|stick|plop|drop|dump|move|throw|toss|lay)\b/.test(s) && has('cone') && first && first!=='cone') return C('putOn', {obj:first});
+    if(/^(put|place|set|move)\b/.test(s) && first==='cone') return U('Put the cone where?');
+    // drop
+    if(/^(drop|release|throw|toss|let go|let|fling|chuck)\b/.test(s)){
+      if(things.length > 1) return tooMany();
+      return C('drop', {obj:first, hand});
+    }
+    return U(`I don’t understand “${raw.trim()}”. Check the robot manual for words I know.`);
+  }
+  function parseProgram(text){
+    const lines = text.split('\n');
+    const root = [];
+    const stack = [{node:null, body:root}];
+    const top = () => stack[stack.length-1];
+    for(let i=0;i<lines.length;i++){
+      const line = i+1;
+      const t = lines[i].replace(/(#|\/\/).*$/,'').trim();
+      if(!t) continue;
+      const s = norm(t);
+      if(!s) continue;
+      let m;
+      if((m = s.match(/^(repeat|loop)\s+(\d+|[a-z]+)(\s+times?)?$/)) || (m = s.match(/^(do)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+times?$/))){
+        const n = /^\d+$/.test(m[2]) ? parseInt(m[2],10) : NUMWORDS[m[2]];
+        const node = {type:'repeat', line, n:null, body:[]};
+        if(!n) node.msg = 'Repeat how many times? Try “repeat 2 times”.';
+        else if(n > 20) node.msg = 'That’s a lot of ice cream! Keep repeats to 20 or fewer.';
+        else node.n = n;
+        top().body.push(node); stack.push({node, body:node.body}); continue;
+      }
+      if(/^(repeat|loop)$/.test(s)){
+        const node = {type:'repeat', line, n:null, msg:'Repeat how many times? Try “repeat 2 times”.', body:[]};
+        top().body.push(node); stack.push({node, body:node.body}); continue;
+      }
+      if((m = s.match(/^if\s+(.+)$/))){
+        const node = {type:'if', line, cond:parseCond(m[1]), condText:m[1], body:[], elseBody:null};
+        top().body.push(node); stack.push({node, body:node.body}); continue;
+      }
+      if(/^(else|otherwise)$/.test(s)){
+        const f = top();
+        if(!f.node || f.node.type!=='if' || f.node.elseBody) return {error:{line, msg:'This else doesn’t have a matching if.'}};
+        f.node.elseBody = []; f.body = f.node.elseBody; continue;
+      }
+      if(/^(end|end if|endif|end repeat|end loop|done)$/.test(s)){
+        if(stack.length===1) return {error:{line, msg:'This end doesn’t match any repeat or if.'}};
+        stack.pop(); continue;
+      }
+      top().body.push(parseCommand(t, s, line));
+    }
+    if(stack.length > 1){ const n = top().node; return {error:{line:n.line, msg:`The ${n.type} on line ${n.line} needs an end.`}}; }
+    return {program:root};
+  }
+
+  // ---------- runner ----------
+  async function execNodes(nodes){ for(const n of nodes){ if(W.finished) return; await execNode(n); } }
+  async function execNode(n){
+    try{
+      if(++execCount > MAX_STEPS) throw new Crash('Too many steps! Is there a loop that never ends?');
+      await gate();
+      curLine = n.line; highlight(n.line);
+      if(n.type==='repeat'){
+        if(!n.n) throw new Crash(n.msg);
+        usedRepeat = true;
+        for(let i=1;i<=n.n;i++){
+          curLine = n.line; highlight(n.line);
+          logLine(n.line, `Repeat: round ${i} of ${n.n}`, 'info'); say(`Round ${i} of ${n.n}`);
+          await sleep(300);
+          await execNodes(n.body);
+          if(W.finished) return;
+        }
+        return;
+      }
+      if(n.type==='if'){
+        usedIf = true;
+        if(!n.cond) throw new Crash(`I don’t know how to check “${n.condText}”. I can check: ice cream is hard or soft, cone is upside down or upright, scoop is empty or full, lid is on or off.`);
+        const v = n.cond();
+        logLine(n.line, `Checked “${n.condText}”: ${v ? 'yes' : 'no'}`, 'info'); say(`Is ${n.condText.replace(/\bis\b\s*/,'')}? ${v ? 'Yes.' : 'No.'}`);
+        await sleep(450);
+        if(v) await execNodes(n.body); else if(n.elseBody) await execNodes(n.elseBody);
+        return;
+      }
+      if(n.type==='unknown') throw new Crash(n.msg);
+      await A[n.action](n.args);
+      await sleep(140);
+    }catch(e){
+      if(e && e.crash && e.line == null) e.line = n.line;
+      throw e;
+    }
+  }
+
+  function showCrash(line, msg){
+    W.mood = 'crash'; refresh();
+    logLine(line, 'Crash: ' + msg, 'crash'); say(msg, 'crash');
+    if(line) highlight(line, true);
+  }
+
+  async function start(step){
+    if(running) return;
+    resetWorld();
+    const parsed = parseProgram(code.value);
+    if(parsed.error){ showCrash(parsed.error.line, parsed.error.msg); return; }
+    if(!parsed.program.length){ say('My program is empty. Type some instructions first!', 'warn'); return; }
+    running = true; abortFlag = false; stepMode = step; stepsAllowed = step ? 1 : 0;
+    execCount = 0; usedRepeat = false; usedIf = false;
+    code.readOnly = true; setUI();
+    logLine(null, step ? 'Running one line at a time. Press Step for the next line.' : 'Running the program…', 'info');
+    let crashed = false;
+    try{
+      await execNodes(parsed.program);
+      if(!W.finished){ logLine(null, 'The program ended, but the customer is still waiting for a cone.', 'warn'); say('Program finished. The customer is still waiting…', 'warn'); }
+    }catch(e){
+      if(e===ABORT){ logLine(null, 'Stopped.', 'info'); say('Stopped.'); }
+      else if(e && e.crash){ crashed = true; showCrash(e.line ?? curLine, e.message); }
+      else { crashed = true; console.error(e); showCrash(curLine, 'Robot malfunction: ' + (e && e.message)); }
+    }finally{
+      running = false; stepMode = false; stepWaiter = null; code.readOnly = false;
+      if(!crashed) hideHighlight();
+      setUI();
+    }
+  }
+
+  function setUI(){
+    runBtn.disabled = running && !stepMode;
+    runBtn.textContent = running && stepMode ? '▶ Run the rest' : '▶ Run';
+    stepBtn.textContent = running && stepMode ? 'Next line' : 'Step';
+    stepBtn.disabled = running && !stepMode;
+    stopBtn.disabled = !running;
+    document.querySelectorAll('.levels button, .sol .btn').forEach(b => b.disabled = running);
+  }
+
+  function resetWorld(){
+    W = freshWorld(); fallingBalls = []; ballsEl.innerHTML = ''; coneKey = ''; splatKey = -1;
+    snapAll(); refresh();
+    logEl.innerHTML = ''; hideHighlight();
+    robotEl.classList.remove('dance');
+    document.querySelectorAll('.confetti').forEach(c => c.remove());
+    say('Beep boop. I’m RS-3000. I do exactly what you tell me. Nothing more, nothing less.');
+  }
+
+  // ---------- editor ----------
+  function updateGutter(){
+    const n = code.value.split('\n').length;
+    let html = ''; for(let i=1;i<=n;i++) html += '<div>' + i + '</div>';
+    gutter.innerHTML = html; gutter.scrollTop = code.scrollTop;
+  }
+  function highlight(line, err=false){
+    hlLine = line; hl.classList.toggle('err', err); hl.style.display = 'block';
+    const topPx = 12 + (line-1)*24;
+    if(topPx < code.scrollTop + 12) code.scrollTop = Math.max(0, topPx - 24);
+    else if(topPx + 36 > code.scrollTop + code.clientHeight) code.scrollTop = topPx + 48 - code.clientHeight;
+    positionHl();
+  }
+  function positionHl(){ if(hlLine) hl.style.top = (12 + (hlLine-1)*24 - code.scrollTop) + 'px'; }
+  function hideHighlight(){ hlLine = null; hl.style.display = 'none'; }
+  code.addEventListener('scroll', () => { gutter.scrollTop = code.scrollTop; positionHl(); });
+  code.addEventListener('input', () => { updateGutter(); if(!running) hideHighlight(); });
+  code.addEventListener('keydown', e => {
+    if((e.ctrlKey || e.metaKey) && e.key==='Enter'){ e.preventDefault(); if(!running) start(false); }
+    else if(e.key==='Tab' && !code.readOnly){
+      e.preventDefault();
+      const s = code.selectionStart, en = code.selectionEnd;
+      code.setRangeText('  ', s, en, 'end'); updateGutter();
+    }
+  });
+
+  // ---------- controls ----------
+  runBtn.addEventListener('click', () => {
+    if(running && stepMode){ stepMode = false; releaseStep(); setUI(); }
+    else start(false);
+  });
+  stepBtn.addEventListener('click', () => {
+    if(running && stepMode){ stepsAllowed++; releaseStep(); }
+    else if(!running) start(true);
+  });
+  stopBtn.addEventListener('click', () => { abortFlag = true; releaseStep(); });
+  resetBtn.addEventListener('click', () => {
+    if(running){ abortFlag = true; releaseStep(); setTimeout(resetWorld, 60); }
+    else resetWorld();
+  });
+  const speedIn = $('#speed');
+  speedIn.addEventListener('input', () => { speed = parseFloat(speedIn.value); $('#speedVal').textContent = speed + '×'; });
+
+  function setLevel(i){
+    level = LEVELS[i];
+    document.querySelectorAll('.levels button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.level===i)));
+    $('#goalTitle').textContent = level.title;
+    $('#goalDesc').textContent = level.desc;
+    $('#orderCones').textContent = '🍦'.repeat(level.goal);
+    resetWorld();
+  }
+  document.querySelectorAll('.levels button').forEach(b => b.addEventListener('click', () => { if(!running) setLevel(+b.dataset.level); }));
+
+  const solEl = $('#solutions');
+  SOLUTIONS.forEach((src,i) => {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `<h3>Level ${i+1}<button class="btn" type="button">Load into editor</button></h3><pre></pre>`;
+    wrap.querySelector('pre').textContent = src;
+    wrap.querySelector('button').addEventListener('click', () => {
+      if(running) return;
+      code.value = src + '\n'; updateGutter(); setLevel(i);
+    });
+    solEl.appendChild(wrap);
+  });
+  const note = document.createElement('p');
+  note.textContent = 'Keep this closed while projecting. These are one working answer each; the class’s version can look different and still work.';
+  solEl.appendChild(note);
+
+  // ---------- boot ----------
+  code.value = STARTER;
+  updateGutter();
+  setLevel(0);
+  setUI();
+  requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>
