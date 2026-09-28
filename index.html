@@ -84,8 +84,8 @@ h1{font-family:Sniglet,"Atkinson Hyperlegible",system-ui,sans-serif;font-weight:
 .log .warn{background:var(--warn-bg);color:var(--warn)}
 .log .crash{background:var(--err-bg);color:var(--err);font-weight:700}
 .log .win{background:var(--ok-bg);color:var(--ok);font-weight:700}
-.docs{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;margin-top:18px;align-items:start}
-@media (max-width:920px){.docs{grid-template-columns:minmax(0,1fr)}}
+.docs{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-top:18px}
+.docs [hidden]{display:none}
 details{background:var(--panel);border:2px solid var(--ink);border-radius:18px;padding:0 18px}
 summary{font-family:Sniglet,system-ui,sans-serif;font-weight:800;font-size:1.15rem;padding:14px 0;cursor:pointer}
 details[open] summary{border-bottom:2px dashed var(--line);margin-bottom:10px}
@@ -318,7 +318,7 @@ end</pre>
         </div>
       </div>
     </details>
-    <details>
+    <details id="teacherPanel" hidden>
       <summary>Teacher: sample solutions</summary>
       <div class="sol" id="solutions"></div>
     </details>
@@ -1044,8 +1044,10 @@ pick up the cone
   }
   document.querySelectorAll('.levels button').forEach(b => b.addEventListener('click', () => { if(!running) setLevel(+b.dataset.level); }));
 
+  const isTeacher = new URLSearchParams(location.search).has('teacher');
+  if(isTeacher) $('#teacherPanel').hidden = false;
   const solEl = $('#solutions');
-  SOLUTIONS.forEach((src,i) => {
+  if(isTeacher) SOLUTIONS.forEach((src,i) => {
     const wrap = document.createElement('div');
     wrap.innerHTML = `<h3>Level ${i+1}<button class="btn" type="button">Load into editor</button></h3><pre></pre>`;
     wrap.querySelector('pre').textContent = src;
@@ -1056,8 +1058,8 @@ pick up the cone
     solEl.appendChild(wrap);
   });
   const note = document.createElement('p');
-  note.textContent = 'Keep this closed while projecting. These are one working answer each; the class’s version can look different and still work.';
-  solEl.appendChild(note);
+  note.textContent = 'You’re seeing this because the link ends in ?teacher. Students on the normal link don’t see this panel. These are one working answer each; the class’s version can look different and still work.';
+  if(isTeacher) solEl.appendChild(note);
 
   // ---------- boot ----------
   code.value = STARTER;
