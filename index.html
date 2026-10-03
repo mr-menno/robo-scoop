@@ -983,7 +983,7 @@ pick up the cone
   }
 
   function resetWorld(){
-    W = freshWorld(); fallingBalls = []; ballsEl.innerHTML = ''; coneKey = ''; splatKey = -1;
+    W = freshWorld(); fallingBalls = []; ballsEl.innerHTML = ''; coneKey = null; splatKey = -1;
     snapAll(); refresh();
     logEl.innerHTML = ''; hideHighlight();
     robotEl.classList.remove('dance');
